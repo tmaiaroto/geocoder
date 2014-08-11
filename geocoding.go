@@ -52,6 +52,31 @@ func Geocode(address string) (lat float64, lng float64) {
 	return
 }
 
+func GeocodeLocation(address string) (Location, error) {
+	loc := Location{}
+
+	// Query Provider
+	resp, err := http.Get(geocodeURL + url.QueryEscape(address) + "&key=" + apiKey)
+	defer resp.Body.Close()
+
+	if err != nil {
+		return loc, err
+	}
+
+	// Decode our JSON results
+	var result geocodingResults
+	err = decoder(resp).Decode(&result)
+	if err != nil {
+		return loc, err
+	}
+
+	if len(result.Results[0].Locations) > 0 {
+		loc = result.Results[0].Locations[0]
+	}
+
+	return loc, err
+}
+
 // ReverseGeocode returns the address for a certain latitude and longitude
 func ReverseGeocode(lat float64, lng float64) *Location {
 	// Query Provider

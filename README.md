@@ -1,6 +1,9 @@
 Geocoder for Google Go
 =====================
 
+Originally authored by: github.com/jasonwinn/geocoder    
+Updates have been made to this forked package and may be incompatible with the original package.
+
 ## What does it do
 
 * Returns a Longitude and Latitude for a given string query
@@ -14,8 +17,8 @@ Google Maps Geocoding API has a limitation that prohibits querying their geocodi
 
 ## Install
 
-* go get "github.com/jasonwinn/geocoder"
-* import "github.com/jasonwinn/geocoder"
+* go get "github.com/tmaiaroto/geocoder"
+* import "github.com/tmaiaroto/geocoder"
  
 
 ## Examples
@@ -42,12 +45,3 @@ Google Maps Geocoding API has a limitation that prohibits querying their geocodi
   address.CountryCode       // US 
 
 ```
-
-## Contribute
-
-This is my first experience with Google Go. If you notice anything that could be improved or is not a best practice, please let me know.
-
-## TODO
-Make ApiKey easily configurable. 
-
-
