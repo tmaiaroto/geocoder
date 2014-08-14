@@ -15,6 +15,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 )
@@ -57,11 +58,10 @@ func GeocodeLocation(address string) (Location, error) {
 
 	// Query Provider
 	resp, err := http.Get(geocodeURL + url.QueryEscape(address) + "&key=" + apiKey)
-	defer resp.Body.Close()
-
 	if err != nil {
 		return loc, err
 	}
+	defer resp.Body.Close()
 
 	// Decode our JSON results
 	var result geocodingResults
@@ -78,33 +78,33 @@ func GeocodeLocation(address string) (Location, error) {
 }
 
 // ReverseGeocode returns the address for a certain latitude and longitude
-func ReverseGeocode(lat float64, lng float64) *Location {
+func ReverseGeocode(lat float64, lng float64) (*Location, error) {
+	var location Location
+
 	// Query Provider
 	resp, err := http.Get(reverseGeocodeURL +
 		fmt.Sprintf("%f,%f&key=%s", lat, lng, apiKey))
-
 	if err != nil {
-		panic(err)
+		//panic(err)
+		//log.Println(err)
+		return &location, err
 	}
-
 	defer resp.Body.Close()
 
 	// Decode our JSON results
 	var result geocodingResults
 	err = decoder(resp).Decode(&result)
-
 	if err != nil {
-		panic(err)
+		//panic(err)
+		log.Println(err)
 	}
-
-	var location Location
 
 	// Assign the results to the Location struct
 	if len(result.Results[0].Locations) > 0 {
 		location = result.Results[0].Locations[0]
 	}
 
-	return &location
+	return &location, err
 }
 
 // BatchGeocode allows multiple locations to be geocoded at the same time.
