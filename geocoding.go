@@ -45,6 +45,7 @@ func Geocode(address string) (lat float64, lng float64) {
 	buffer.WriteString("&key=")
 	buffer.WriteString(apiKey)
 	resp, err := HttpClient.Get(buffer.String())
+	buffer.Reset()
 	if err != nil {
 		panic(err)
 	}
@@ -80,6 +81,7 @@ func GeocodeLocation(address string) (Location, error) {
 
 	//resp, err := http.Get(buffer.String())
 	resp, err := HttpClient.Get(buffer.String())
+	buffer.Reset()
 	//resp, err := http.Get(geocodeURL + url.QueryEscape(address) + "&key=" + apiKey)
 	if err != nil {
 		return loc, err
@@ -110,6 +112,7 @@ func ReverseGeocode(lat float64, lng float64) (*Location, error) {
 	buffer.WriteString(fmt.Sprintf("%f,%f&key=%s", lat, lng, apiKey))
 	//resp, err := http.Get(buffer.String())
 	resp, err := HttpClient.Get(buffer.String())
+	buffer.Reset()
 	//resp, err := http.Get(reverseGeocodeURL + fmt.Sprintf("%f,%f&key=%s", lat, lng, apiKey))
 	if err != nil {
 		//panic(err)
