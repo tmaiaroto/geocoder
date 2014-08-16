@@ -26,11 +26,25 @@ const (
 	batchGeocodeURL   = "http://open.mapquestapi.com/geocoding/v1/batch?key="
 )
 
+var HttpClient http.Client
+
+func NewGeocoder() http.Client {
+	HttpClient = &http.Client{}
+
+	return &HttpClient
+}
+
 // Geocode returns the latitude and longitude for a certain address
 func Geocode(address string) (lat float64, lng float64) {
 	// Query Provider
-	resp, err := http.Get(geocodeURL + url.QueryEscape(address) + "&key=" + apiKey)
+	//resp, err := http.Get(geocodeURL + url.QueryEscape(address) + "&key=" + apiKey)
 
+	var buffer bytes.Buffer
+	buffer.WriteString(geocodeURL)
+	buffer.WriteString(url.QueryEscape(address))
+	buffer.WriteString("&key=")
+	buffer.WriteString(apiKey)
+	resp, err := httpClient.Get(buffer.String())
 	if err != nil {
 		panic(err)
 	}
@@ -57,7 +71,17 @@ func GeocodeLocation(address string) (Location, error) {
 	loc := Location{}
 
 	// Query Provider
-	resp, err := http.Get(geocodeURL + url.QueryEscape(address) + "&key=" + apiKey)
+	// buffer.WriteString() is a lot faster than concatenating with +
+	var buffer bytes.Buffer
+	buffer.WriteString(geocodeURL)
+	buffer.WriteString(url.QueryEscape(address))
+	buffer.WriteString("&key=")
+	buffer.WriteString(apiKey)
+
+	//resp, err := http.Get(buffer.String())
+	resp, err := httpClient.Get(buffer.String())
+	//resp, err := http.Get(geocodeURL + url.QueryEscape(address) + "&key=" + apiKey)
+	defer resp.Close()
 	if err != nil {
 		return loc, err
 	}
@@ -82,8 +106,13 @@ func ReverseGeocode(lat float64, lng float64) (*Location, error) {
 	var location Location
 
 	// Query Provider
-	resp, err := http.Get(reverseGeocodeURL +
-		fmt.Sprintf("%f,%f&key=%s", lat, lng, apiKey))
+	var buffer bytes.Buffer
+	buffer.WriteString(reverseGeocodeURL)
+	buffer.WriteString(fmt.Sprintf("%f,%f&key=%s", lat, lng, apiKey))
+	//resp, err := http.Get(buffer.String())
+	resp, err := httpClient.Get(buffer.String())
+	//resp, err := http.Get(reverseGeocodeURL + fmt.Sprintf("%f,%f&key=%s", lat, lng, apiKey))
+	defer resp.Close()
 	if err != nil {
 		//panic(err)
 		//log.Println(err)
