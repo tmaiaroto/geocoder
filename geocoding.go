@@ -15,9 +15,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/tmaiaroto/geocoder/lib/httpclient"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 const (
@@ -28,8 +31,26 @@ const (
 
 var HttpClient http.Client
 
-func NewGeocoder() http.Client {
-	HttpClient = http.Client{}
+func NewGeocoder() *http.Client {
+	// TODO: Maybe make the timeout something configurable
+
+	HttpClient := &http.Client{
+		Transport: &httptimeout.TimeoutTransport{
+			Transport: http.Transport{
+				Dial: func(netw, addr string) (net.Conn, error) {
+					log.Printf("dial to %s://%s", netw, addr)
+					return net.Dial(netw, addr) // Regular ass dial.
+				},
+			},
+			// RoundTripTimeout: time.Millisecond * 200, // <--- what the author had
+			// RoundTripTimeout: time.Nanosecond * 10, // <--- still was completing requests in this amount of time (holy smokes that's fast)!
+			// I'm going to go a little tiny bit longer because I don't know what kind of machine this will run on.
+			// Though the geocoding service is fast and the payload small, so requests should be fast.
+			RoundTripTimeout: time.Millisecond * 300,
+		},
+	}
+
+	//HttpClient = http.Client{}
 
 	return HttpClient
 }
@@ -44,10 +65,19 @@ func Geocode(address string) (lat float64, lng float64) {
 	buffer.WriteString(url.QueryEscape(address))
 	buffer.WriteString("&key=")
 	buffer.WriteString(apiKey)
-	resp, err := HttpClient.Get(buffer.String())
+	// resp, err := HttpClient.Get(buffer.String())
+	// with timeout
+	req, err := http.NewRequest("GET", buffer.String(), nil)
+	if err != nil {
+		return 0.0, 0.0
+	}
+	req.Header.Add("Connection", "keep-alive")
+	resp, err := HttpClient.Do(req)
+
 	buffer.Reset()
 	if err != nil {
-		panic(err)
+		//panic(err)
+		return 0.0, 0.0
 	}
 
 	defer resp.Body.Close()
@@ -57,7 +87,8 @@ func Geocode(address string) (lat float64, lng float64) {
 	err = decoder(resp).Decode(&result)
 
 	if err != nil {
-		panic(err)
+		//panic(err)
+		return 0.0, 0.0
 	}
 
 	if len(result.Results[0].Locations) > 0 {
@@ -65,7 +96,7 @@ func Geocode(address string) (lat float64, lng float64) {
 		lng = result.Results[0].Locations[0].LatLng.Lng
 	}
 
-	return
+	return lat, lng
 }
 
 func GeocodeLocation(address string) (Location, error) {
@@ -80,7 +111,15 @@ func GeocodeLocation(address string) (Location, error) {
 	buffer.WriteString(apiKey)
 
 	//resp, err := http.Get(buffer.String())
-	resp, err := HttpClient.Get(buffer.String())
+	//resp, err := HttpClient.Get(buffer.String())
+	// even better?
+	req, err := http.NewRequest("GET", buffer.String(), nil)
+	if err != nil {
+		return loc, err
+	}
+	req.Header.Add("Connection", "keep-alive")
+	resp, err := HttpClient.Do(req)
+
 	buffer.Reset()
 	//resp, err := http.Get(geocodeURL + url.QueryEscape(address) + "&key=" + apiKey)
 	if err != nil {
@@ -98,6 +137,7 @@ func GeocodeLocation(address string) (Location, error) {
 	if len(result.Results[0].Locations) > 0 {
 		loc = result.Results[0].Locations[0]
 	}
+	log.Println(loc)
 
 	return loc, err
 }
@@ -111,7 +151,15 @@ func ReverseGeocode(lat float64, lng float64) (*Location, error) {
 	buffer.WriteString(reverseGeocodeURL)
 	buffer.WriteString(fmt.Sprintf("%f,%f&key=%s", lat, lng, apiKey))
 	//resp, err := http.Get(buffer.String())
-	resp, err := HttpClient.Get(buffer.String())
+	//resp, err := HttpClient.Get(buffer.String())
+	// with timeout
+	req, err := http.NewRequest("GET", buffer.String(), nil)
+	if err != nil {
+		return &location, err
+	}
+	req.Header.Add("Connection", "keep-alive")
+	resp, err := HttpClient.Do(req)
+
 	buffer.Reset()
 	//resp, err := http.Get(reverseGeocodeURL + fmt.Sprintf("%f,%f&key=%s", lat, lng, apiKey))
 	if err != nil {
