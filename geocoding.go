@@ -38,7 +38,7 @@ func NewGeocoder() *http.Client {
 		Transport: &httptimeout.TimeoutTransport{
 			Transport: http.Transport{
 				Dial: func(netw, addr string) (net.Conn, error) {
-					log.Printf("dial to %s://%s", netw, addr)
+					//log.Printf("dial to %s://%s", netw, addr)
 					return net.Dial(netw, addr) // Regular ass dial.
 				},
 			},
@@ -137,7 +137,6 @@ func GeocodeLocation(address string) (Location, error) {
 	if len(result.Results[0].Locations) > 0 {
 		loc = result.Results[0].Locations[0]
 	}
-	log.Println(loc)
 
 	return loc, err
 }
