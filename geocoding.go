@@ -68,13 +68,13 @@ func Geocode(address string) (lat float64, lng float64) {
 	// resp, err := HttpClient.Get(buffer.String())
 	// with timeout
 	req, err := http.NewRequest("GET", buffer.String(), nil)
+	buffer.Reset()
 	if err != nil {
 		return 0.0, 0.0
 	}
 	req.Header.Add("Connection", "keep-alive")
 	resp, err := HttpClient.Do(req)
 
-	buffer.Reset()
 	if err != nil {
 		//panic(err)
 		return 0.0, 0.0
@@ -114,13 +114,13 @@ func GeocodeLocation(address string) (Location, error) {
 	//resp, err := HttpClient.Get(buffer.String())
 	// even better?
 	req, err := http.NewRequest("GET", buffer.String(), nil)
+	buffer.Reset()
 	if err != nil {
 		return loc, err
 	}
 	req.Header.Add("Connection", "keep-alive")
 	resp, err := HttpClient.Do(req)
 
-	buffer.Reset()
 	//resp, err := http.Get(geocodeURL + url.QueryEscape(address) + "&key=" + apiKey)
 	if err != nil {
 		return loc, err
@@ -142,7 +142,7 @@ func GeocodeLocation(address string) (Location, error) {
 }
 
 // ReverseGeocode returns the address for a certain latitude and longitude
-func ReverseGeocode(lat float64, lng float64) (*Location, error) {
+func ReverseGeocode(lat float64, lng float64) (Location, error) {
 	var location Location
 
 	// Query Provider
@@ -153,18 +153,18 @@ func ReverseGeocode(lat float64, lng float64) (*Location, error) {
 	//resp, err := HttpClient.Get(buffer.String())
 	// with timeout
 	req, err := http.NewRequest("GET", buffer.String(), nil)
+	buffer.Reset()
 	if err != nil {
-		return &location, err
+		return location, err
 	}
 	req.Header.Add("Connection", "keep-alive")
 	resp, err := HttpClient.Do(req)
 
-	buffer.Reset()
 	//resp, err := http.Get(reverseGeocodeURL + fmt.Sprintf("%f,%f&key=%s", lat, lng, apiKey))
 	if err != nil {
 		//panic(err)
 		//log.Println(err)
-		return &location, err
+		return location, err
 	}
 	defer resp.Body.Close()
 
@@ -181,7 +181,7 @@ func ReverseGeocode(lat float64, lng float64) (*Location, error) {
 		location = result.Results[0].Locations[0]
 	}
 
-	return &location, err
+	return location, err
 }
 
 // BatchGeocode allows multiple locations to be geocoded at the same time.
