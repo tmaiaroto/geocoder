@@ -174,11 +174,11 @@ func ReverseGeocode(lat float64, lng float64) (Location, error) {
 	if err != nil {
 		//panic(err)
 		log.Println(err)
-	}
-
-	// Assign the results to the Location struct
-	if len(result.Results[0].Locations) > 0 {
-		location = result.Results[0].Locations[0]
+	} else {
+		// Assign the results to the Location struct
+		if len(result.Results) > 0 && len(result.Results[0].Locations) > 0 {
+			location = result.Results[0].Locations[0]
+		}
 	}
 
 	return location, err
